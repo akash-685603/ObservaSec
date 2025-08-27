@@ -1,0 +1,38 @@
+stages:
+  - security
+  - build
+  - deploy
+
+variables:
+  REGISTRY: "localhost:5000"
+  IMAGE_TAG: "${CI_COMMIT_SHORT_SHA}"
+  IMAGE: "$REGISTRY/observasec-api:${IMAGE_TAG}"
+
+security:
+  stage: security
+  script:
+    - echo "Bandit (SAST)"; bandit -r .
+    - echo "Gitleaks (secrets)"; gitleaks detect --source .
+    - echo "Trivy (filesystem scan)"; trivy fs --exit-code 1 .
+  allow_failure: false
+
+build:
+  stage: build
+  script:
+    - echo "Build & push image to local registry..."
+    - docker build -t "$IMAGE" .
+    - docker push "$IMAGE"
+  only:
+    - main
+
+deploy:
+  stage: deploy
+  script:
+    - echo "Create namespace if missing"; kubectl apply -f k8s/namespace.yaml
+    - if kubectl -n observasec get deploy observasec-api >/dev/null 2>&1; then \
+        kubectl -n observasec set image deployment/observasec-api api="$IMAGE"; \
+      else \
+        sed "s#localhost:5000/observasec-api:latest#$IMAGE#g" k8s/deployment.yaml | kubectl apply -f - ; \
+      fi
+  only:
+    - main

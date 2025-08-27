@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: observasec-api
+  namespace: observasec
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: observasec-api
+  template:
+    metadata:
+      labels:
+        app: observasec-api
+      annotations:
+        co.elastic.logs/enabled: "true"
+    spec:
+      containers:
+      - name: api
+        image: localhost:5000/observasec-api:latest
+        ports:
+        - containerPort: 5000
+        volumeMounts:
+        - name: app-logs
+          mountPath: /var/log/observasec
+      volumes:
+      - name: app-logs
+        emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: observasec-api
+  namespace: observasec
+spec:
+  type: NodePort
+  selector:
+    app: observasec-api
+  ports:
+    - port: 5000
+      targetPort: 5000
+      nodePort: 30007

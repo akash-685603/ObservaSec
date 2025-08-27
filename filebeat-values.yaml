@@ -1,0 +1,8 @@
+filebeatConfig:
+  filebeat.yml: |
+    filebeat.autodiscover:
+      providers:
+        - type: kubernetes
+          hints.enabled: true
+    output.elasticsearch:
+      hosts: ['http://elasticsearch-master.elasticsearch.svc.cluster.local:9200']
