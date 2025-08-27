@@ -4,7 +4,7 @@
 ---
 
 ## 📌 Overview
-**LogShield** is a DevSecOps reference project that integrates:
+**ObservaSec** is a DevSecOps project that integrates:
 
 - **Source Control**: GitHub for code hosting.  
 - **CI/CD**: GitLab pipelines with security scans and automated deployments.  
